@@ -172,4 +172,32 @@ describe("resolveProviderRequestHeaders", () => {
 			});
 		}
 	});
+
+	it.each([
+		"gemini",
+		"vertex",
+	])("identifies Cline and the task session for %s while preserving custom headers", (providerId) => {
+		expect(
+			resolveProviderRequestHeaders({
+				providerId,
+				sessionId: "task-1",
+				defaultSource: "cli",
+				coreVersion: "0.2.0",
+				client: { version: "3.40.0" },
+				headers: {
+					stored: { "x-stored": "kept", "User-Agent": "stale" },
+					config: { "x-config": "kept" },
+					session: { "x-session": "kept" },
+				},
+			}),
+		).toEqual({
+			"User-Agent": "Cline/3.40.0",
+			"X-Goog-Api-Client": "cline/3.40.0",
+			"X-Session-Id": "task-1",
+			"x-session-affinity": "task-1",
+			"x-stored": "kept",
+			"x-config": "kept",
+			"x-session": "kept",
+		});
+	});
 });

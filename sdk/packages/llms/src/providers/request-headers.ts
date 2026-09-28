@@ -133,6 +133,22 @@ function buildOpenAICodexRequestHeaders(
 	};
 }
 
+// https://ai.google.dev/gemini-api/docs/partner-integration#client-id
+function buildGoogleRequestHeaders(
+	input: ResolveProviderRequestHeadersInput,
+): Record<string, string> | undefined {
+	if (input.providerId !== "gemini" && input.providerId !== "vertex") {
+		return undefined;
+	}
+	const version = trimNonEmpty(input.client?.version) ?? input.coreVersion;
+	return {
+		"User-Agent": `Cline/${version}`,
+		"X-Goog-Api-Client": `cline/${version}`,
+		"X-Session-Id": input.sessionId,
+		"x-session-affinity": input.sessionId,
+	};
+}
+
 function resolveRequiredProviderHeaders(
 	input: ResolveProviderRequestHeadersInput,
 ): Record<string, string> | undefined {
@@ -143,7 +159,9 @@ function resolveRequiredProviderHeaders(
 		};
 	}
 	return (
-		buildClineRequestHeaders(input) ?? buildOpenAICodexRequestHeaders(input)
+		buildClineRequestHeaders(input) ??
+		buildOpenAICodexRequestHeaders(input) ??
+		buildGoogleRequestHeaders(input)
 	);
 }
 
